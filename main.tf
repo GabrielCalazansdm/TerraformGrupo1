@@ -1,12 +1,30 @@
+variable "ACCONT_ID" {
+  type = string
+}
+
+variable "ORG" {
+  type = string
+}
+
+variable "MACHINE_TYPE" {
+  type = string
+  default = "n2-standard-2"
+}
+
+variable "ZONE" {
+  type = string
+  default = "us-central1-a"
+}
+
 resource "google_service_account" "default" {
-  account_id   = "my-custom-sa"
+  account_id   = var.ACCONT_ID
   display_name = "Custom SA for VM Instance"
 }
 
 resource "google_network_security_security_profile" "security_profile" {
     name        = "sec-profile"
     type        = "THREAT_PREVENTION"
-    parent      = "organizations/123456789"
+    parent      = var.ORG
     location    = "global"
 	
 	custom_mirroring_profile {
@@ -52,7 +70,7 @@ resource "google_network_security_intercept_endpoint_group" "default" {
 resource "google_network_security_security_profile_group" "default" {
   provider                  = google-beta
   name                      = "sec-profile-group"
-  parent                    = "organizations/123456789"
+  parent                    = var.ORG
   description               = "Security group"
   threat_prevention_profile = google_network_security_security_profile.security_profile.id
 }
@@ -60,10 +78,8 @@ resource "google_network_security_security_profile_group" "default" {
 
 resource "google_compute_instance" "wazuh" {
   name         = "my-wazuh"
-  machine_type = "n2-standard-2"
-  zone         = "us-central1-a"
-
-  tags = ["foo", "bar"]
+  machine_type = var.MACHINE_TYPE
+  zone         = var.ZONE
 
   boot_disk {
     initialize_params {
@@ -91,10 +107,8 @@ resource "google_compute_instance" "wazuh" {
 
 resource "google_compute_instance" "misp" {
   name         = "my-misp"
-  machine_type = "n2-standard-2"
-  zone         = "us-central1-a"
-
-  tags = ["foo", "bar"]
+  machine_type = var.MACHINE_TYPE
+  zone         = var.ZONE
 
   boot_disk {
     initialize_params {
